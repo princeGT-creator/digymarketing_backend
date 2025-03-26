@@ -1,0 +1,5 @@
+client_secret_293064886825-eb1j0jspkb37ore4kdrcgilvcggkfho2.apps.googleusercontent.com.json
+.env
+*/__pycache__
+users/migrations/__pycache__
+cases/migrations/__pycache__
