@@ -1,32 +1,54 @@
-import os
-from google.oauth2.service_account import Credentials
+import os.path
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
+from googleapiclient.errors import HttpError
 
-CREDENTIALS_FILE = os.path.join(os.path.dirname(__file__), 'credentials.json')
+# Scopes for Google Drive API (including upload permissions)
+SCOPES = ["https://www.googleapis.com/auth/drive.file"]
 
-def get_drive_service():
-    creds = Credentials.from_service_account_file(CREDENTIALS_FILE, scopes=['https://www.googleapis.com/auth/drive'])
-    return build('drive', 'v3', credentials=creds)
-
-def create_drive_folder(folder_name):
-    service = get_drive_service()
-    file_metadata = {
-        'name': folder_name,
-        'mimeType': 'application/vnd.google-apps.folder'
-    }
-    folder = service.files().create(body=file_metadata, fields='id').execute()
-    return folder.get("id")
-
-def upload_to_drive(file_path, file_name, folder_id):
-    service = get_drive_service()
+def get_google_drive_service():
+    """Authenticate and return the Google Drive API service"""
+    creds = None
+    if os.path.exists("token.json"):
+        creds = Credentials.from_authorized_user_file("token.json", SCOPES)
     
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                "client_secret_290053304181-fd48j6ollj2s8eae2ckmsp1j3bn96s7e.apps.googleusercontent.com.json", SCOPES)
+            creds = flow.run_local_server(port=8001)
+        
+        with open("token.json", "w") as token:
+            token.write(creds.to_json())
+
+    service = build("drive", "v3", credentials=creds)
+    return service
+
+def upload_to_drive(folder_id, file_path, file_name):
+    """Upload a file to Google Drive"""
+    service = get_google_drive_service()
+
+    # Create a media file upload object
+    media = MediaFileUpload(file_path, resumable=True)
+
+    # Create the file metadata
     file_metadata = {
         'name': file_name,
-        'parents': [folder_id]  # Dynamic folder ID
+        'parents': [folder_id],  # Place the file inside the specified folder
     }
-    
-    media = MediaFileUpload(file_path, mimetype='application/octet-stream')
-    uploaded_file = service.files().create(body=file_metadata, media_body=media, fields='id,webViewLink').execute()
 
-    return uploaded_file.get("id"), uploaded_file.get("webViewLink")
+    try:
+        # Upload the file
+        file = service.files().create(body=file_metadata, media_body=media, fields="id, webViewLink").execute()
+
+        # Return the file ID and link
+        return file['id'], file['webViewLink']
+
+    except HttpError as error:
+        print(f"An error occurred: {error}")
+        return None, None

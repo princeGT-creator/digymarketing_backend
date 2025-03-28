@@ -3,6 +3,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import CustomUser, PasswordResetToken
@@ -20,6 +22,8 @@ from .permissions import IsSuperAdmin
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['role'] 
 
     def get_serializer_class(self):
         if self.action == "create":

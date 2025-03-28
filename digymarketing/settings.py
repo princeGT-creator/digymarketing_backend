@@ -10,7 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import os
 from pathlib import Path
+
+from dotenv import load_dotenv
+
+load_dotenv() 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -38,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders', 
+    'django_filters',
     'rest_framework',
     'rest_framework_simplejwt',
     'users',  # Custom user app
@@ -84,7 +90,11 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ),
 }
+
 
 from datetime import timedelta
 
@@ -105,6 +115,24 @@ EMAIL_HOST_USER = "as@giekytribe.com"
 EMAIL_HOST_PASSWORD = "xzay djkr kwjm ajfc"  # Use the App Password here
 
 
+# files storage settings
+
+ENVIRONMENT = os.getenv('ENVIRONMENT', 'dev')
+
+if ENVIRONMENT == 'dev':
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# else:
+#     # In production, you might use cloud storage
+#     MEDIA_URL = 'https://your-cdn-url.com/media/'
+#     DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'  
+
+
+######### Paypal Settings #############
+PAYPAL_MODE = os.getenv('PAYPAL_MODE', '')
+PAYPAL_CLIENT_ID = os.getenv('PAYPAL_CLIENT', '')
+PAYPAL_CLIENT_SECRET = os.getenv('PAYPAL_SECRET', '')
+
 # Cors settings
 CORS_ALLOW_METHODS = [
     "GET",
@@ -118,8 +146,11 @@ CORS_ALLOW_METHODS = [
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",  # React or frontend running on localhost
-    "https://7b62-103-36-78-64.ngrok-free.app",  # Your production frontend
+    "https://4224-103-36-78-64.ngrok-free.app",  # Your production frontend
 ]
+
+# GCP Settings
+GOOGLE_CREDENTIALS_FILE = os.getenv('GOOGLE_CREDENTIALS_FILE')
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases

@@ -60,6 +60,11 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return CustomUser.objects.create_user(**validated_data)
+    
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['full_name'] = f"{instance.first_name} {instance.last_name}"
+        return data
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
