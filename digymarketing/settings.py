@@ -123,6 +123,9 @@ ENVIRONMENT = os.getenv('ENVIRONMENT', 'dev')
 if ENVIRONMENT == 'dev':
     MEDIA_URL = '/media/'
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  
 # else:
 #     # In production, you might use cloud storage
 #     MEDIA_URL = 'https://your-cdn-url.com/media/'
