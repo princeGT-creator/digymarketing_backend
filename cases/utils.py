@@ -124,7 +124,7 @@ def generate_legal_document(case_id):
     case_text.append((getattr(case, 'clause_2', ''), True))
 
     # Separator
-    case_text.append(("<><><>", False))
+    # case_text.append(("<><><>", False))
 
     # Adding the final request section
     case_text.append(("Tutto ciò premesso, i ricorrenti come sopra generalizzati, rappresentati e difesi", False))
@@ -193,3 +193,12 @@ def generate_legal_document(case_id):
     doc.save(file_path)
 
     return file_path
+
+from django.core.exceptions import ObjectDoesNotExist
+
+def get_object_or_none(model_class, **filters):
+    try:
+        return model_class.objects.get(**filters)
+    except (model_class.DoesNotExist, ObjectDoesNotExist):
+        return None
+

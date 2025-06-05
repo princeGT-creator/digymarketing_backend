@@ -1,7 +1,7 @@
 from django.db import models
 from users.models import TimestampedModel, CustomUser
 # from .google_drive_service import create_drive_folder
-from .google_drive_service import upload_to_drive
+from .google_drive_service import upload_to_drive, create_drive_folder, copy_file_to_folder
 import datetime
 from django.db.models import Max
 import os
@@ -39,8 +39,16 @@ CASE_STATUS = (
     ('Transcript Of Proceedings (Municipality)', 'Transcript Of Proceedings (Municipality)')
 )
 
+PAYMENT_STATUS = (
+    ('COMPLETED', 'COMPLETED'),
+    ('PENDING', 'PENDING'),
+    ('FAILED', 'FAILED'),
+    ('VOIDED', 'VOIDED')
+)
+
 
 class Appellant(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
     name = models.CharField(max_length=30)
     email = models.EmailField()
     is_minor = models.BooleanField(default=False)
@@ -97,7 +105,7 @@ class Address(TimestampedModel):
 
     
 class Case(TimestampedModel):
-    court_no = models.CharField(max_length=100)
+    court_no = models.CharField(max_length=100, blank=True, null=True)
     case_no = models.CharField(max_length=100, blank=True, null=True, unique=True)
     appellants = models.ManyToManyField(Appellant, related_name="cases")  # M2M Relationship
     lawyer = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, related_name="cases", null=True, blank=True)
@@ -110,17 +118,22 @@ class Case(TimestampedModel):
     marriage_place = models.ForeignKey(Address, on_delete=models.SET_NULL, related_name="marriage_address", null=True, blank=True)
     grand_parents_dod = models.DateField(null=True, blank=True)
     grand_parents_dop = models.ForeignKey(Address, on_delete=models.SET_NULL, related_name="death_address", null=True, blank=True)
-    clause_1 = models.CharField(max_length=100, null=True, blank=True)
-    status = models.CharField(max_length=50, choices=CASE_STATUS, default="")  # FIXED CHOICES
+    clause_1 = models.CharField(max_length=500, null=True, blank=True)
+    status = models.CharField(max_length=50, choices=CASE_STATUS, default="In The Compilation Phase")  # FIXED CHOICES
     # generation = models.ForeignKey(Generation, on_delete=models.SET_NULL, related_name="case_generations", null=True, blank=True)
+    court_value = models.TextField(null=True, blank=True)
+    hearing_value = models.TextField(null=True, blank=True)
     is_consolare = models.BooleanField(default=False)
     is_judicial = models.BooleanField(default=False)
-    clause_2 = models.CharField(max_length=100, null=True, blank=True)
-    clause_3 = models.CharField(max_length=100, null=True, blank=True)
-    clause_4 = models.CharField(max_length=100, null=True, blank=True)
+    clause_2 = models.CharField(max_length=500, null=True, blank=True)
+    clause_3 = models.CharField(max_length=500, null=True, blank=True)
+    clause_4 = models.CharField(max_length=500, null=True, blank=True)
     total_payment = models.DecimalField(max_digits=10, decimal_places=2)
     payment_place = models.CharField(max_length=100, null=True, blank=True)
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS, default="PENDING")
+    payment_json = models.JSONField(null=True, blank=True)
     date_of_payment = models.DateField(null=True, blank=True)
+    drive_folder_id = models.CharField(max_length=100, blank=True, null=True) 
     created_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='created_cases')
 
     def calculate_total_payment(self):
@@ -206,13 +219,30 @@ class Case(TimestampedModel):
 
         return new_case_no
 
+    
     def save(self, *args, **kwargs):
         if not self.case_no:
-            self.case_no = self.generate_case_no()  # Generate case number before saving
+            self.case_no = self.generate_case_no()
+        
         super().save(*args, **kwargs)
 
+        if not self.drive_folder_id:
+            folder_id = create_drive_folder(self.case_no)
+            self.drive_folder_id = folder_id
+            super().save(update_fields=["drive_folder_id"])
+
+        # After case and folder are created, copy files into case folder
+        for appellant in self.appellants.all():
+            for file in appellant.files.all():
+                if file.drive_file_id:
+                    # Copy the file to the case's drive folder
+                    copied_file_id, copied_file_link = copy_file_to_folder(
+                        file.drive_file_id,
+                        self.drive_folder_id
+                    )
+
     def __str__(self):
-        return self.court_no
+        return self.case_no
 
 
 

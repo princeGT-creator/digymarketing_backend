@@ -8,7 +8,9 @@ from .views import (
     GenerationViewSet,
     CreatePaymentView,
     ExecutePaymentView,
-    CancelPaymentView
+    CancelPaymentView,
+    DownloadLegalDocumentView,
+    CaseRevisionView
     )
 
 router = DefaultRouter()
@@ -22,5 +24,7 @@ urlpatterns = [
     path('', include(router.urls)),
     path('payment/create/<int:case_id>/', CreatePaymentView.as_view(), name='create_payment'),
     path('payment/execute/<int:case_id>/', ExecutePaymentView.as_view(), name='execute_payment'),
-    path('payment/cancel/', CancelPaymentView.as_view(), name='cancel_payment')
+    path('payment/cancel/', CancelPaymentView.as_view(), name='cancel_payment'),
+    path('download-legal-document/<int:case_id>/', DownloadLegalDocumentView.as_view(), name='download-legal-document'),
+    path('case-revision/<int:case_id>/', CaseRevisionView.as_view(), name='case-revision')
 ]

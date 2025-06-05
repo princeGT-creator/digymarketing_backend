@@ -17,18 +17,21 @@ from users.serializers import UserSerializer
 class AppellantFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = AppellantFile
-        fields = ['id', 'appellant', 'file', 'uploaded_at']
+        fields = ['id', 'appellant', 'file', 'drive_file_link', 'uploaded_at']
         read_only_fields = ['uploaded_at']
 
 
 class AppellantSerializer(serializers.ModelSerializer):
     files = AppellantFileSerializer(many=True, read_only=True)
+    password = serializers.CharField(write_only=True, required=False)
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Appellant
         fields = [
             'id', 'name', 'email', 'is_minor', 'birth_place',
-            'fical_code', 'dob', 'marital_status', 'address', 'drive_folder_id', 'files'
+            'fical_code', 'dob', 'marital_status', 'address',
+            'drive_folder_id', 'files', 'password', 'user'
         ]
 
 class AddressSerializer(serializers.ModelSerializer):

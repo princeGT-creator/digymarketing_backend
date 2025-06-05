@@ -146,7 +146,7 @@ CORS_ALLOW_METHODS = [
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",  # React or frontend running on localhost
-    "https://4224-103-36-78-64.ngrok-free.app",  # Your production frontend
+    "https://f4f0-2401-4900-1c2b-f411-7ec1-73f9-8f31-33bf.ngrok-free.app",  # Your production frontend
 ]
 
 # GCP Settings
