@@ -108,11 +108,12 @@ SIMPLE_JWT = {
 
 # Mail settings
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"  # For Gmail
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "as@giekytribe.com"
-EMAIL_HOST_PASSWORD = "xzay djkr kwjm ajfc"  # Use the App Password here
+EMAIL_HOST = os.getenv("EMAIL_HOST", default="smtp.gmail.com")
+EMAIL_PORT = os.getenv("EMAIL_PORT", default=587)
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", default=True)
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+
 
 
 # files storage settings
@@ -144,10 +145,7 @@ CORS_ALLOW_METHODS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",  # React or frontend running on localhost
-    "https://f4f0-2401-4900-1c2b-f411-7ec1-73f9-8f31-33bf.ngrok-free.app",  # Your production frontend
-]
+CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
 
 # GCP Settings
 GOOGLE_CREDENTIALS_FILE = os.getenv('GOOGLE_CREDENTIALS_FILE')
@@ -184,14 +182,13 @@ AUTH_PASSWORD_VALIDATORS = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'digymarketing',  # Change to your database name
-        'USER': 'postgres',  # Change to your database user
-        'PASSWORD': 'Root@123',  # Change to your database password
-        'HOST': 'localhost',  # Use your PostgreSQL server IP if remote
-        'PORT': '5432',  # Default PostgreSQL port
+        'NAME': os.getenv("DB_NAME"),
+        'USER': os.getenv("DB_USER"),
+        'PASSWORD': os.getenv("DB_PASSWORD"),
+        'HOST': os.getenv("DB_HOST", default="localhost"),
+        'PORT': os.getenv("DB_PORT", default="5432"),
     }
 }
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/

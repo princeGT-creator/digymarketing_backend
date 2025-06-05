@@ -163,7 +163,7 @@ class GenerationViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
 
-configure_paypal()
+# configure_paypal()
 
 class CreatePaymentView(APIView):
     def post(self, request, case_id):

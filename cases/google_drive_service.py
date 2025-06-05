@@ -12,31 +12,26 @@ SCOPES = ["https://www.googleapis.com/auth/drive.file"]
 
 
 def get_google_drive_service():
+    """Authenticate and return the Google Drive API service"""
     creds = None
-    token_path = "token.json"
-    if os.path.exists(token_path):
-        creds = Credentials.from_authorized_user_file(token_path, SCOPES)
+    if os.path.exists("token.json"):
+        creds = Credentials.from_authorized_user_file("token.json", SCOPES)
 
     if not creds or not creds.valid:
-        try:
-            if creds and creds.expired and creds.refresh_token:
-                creds.refresh(Request())
-            else:
-                raise Exception("Require manual auth")
-        except Exception as e:
-            # Token is invalid or revoked, delete and re-auth
-            if os.path.exists(token_path):
-                os.remove(token_path)
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
             flow = InstalledAppFlow.from_client_secrets_file(
                 "client_secret_963292558056-lk9kmqt60c3o85er2o9c2hmggftm4j9j.apps.googleusercontent.com.json",
                 SCOPES,
             )
             creds = flow.run_local_server(port=8001)
 
-        with open(token_path, "w") as token:
+        with open("token.json", "w") as token:
             token.write(creds.to_json())
 
-    return build("drive", "v3", credentials=creds)
+    service = build("drive", "v3", credentials=creds)
+    return service
 
 
 def create_drive_folder(folder_name, parent_id=None):
